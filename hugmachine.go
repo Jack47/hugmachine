@@ -1,16 +1,25 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"net/http"
 
-	"golang.org/x/net/websocket"
 	"github.com/Jack47/hugger"
+	"github.com/golang/glog"
 )
 
-func handler(ws *websocket.Conn) {
-	ws.Write([]byte(hugger.Hug()))
+func heartbreakerHandler(w http.ResponseWriter, req *http.Request) {
+	io.Write(w, hugger.Hug())
 }
+
+var LISTENING_PORT = 1024
+
 func main() {
-	http.Handle("/heartbreaker", websocket.Handler(handler))
-	http.ListenAndServe(":3000", nil)
+	http.Handle("/heartbreaker", heartbreakerHandler)
+	glog.Infof("Listening on port %d", LISTENING_PORT)
+	err := http.ListenAndServe(":"+str(LISTENING_PORT), nil)
+	if err != nil {
+		glog.Fatal("ListenAndServe: " + err.Error())
+	}
 }
