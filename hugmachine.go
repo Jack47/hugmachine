@@ -1,25 +1,29 @@
 package main
 
 import (
-	"fmt"
+	"os"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/Jack47/hugger"
-	"github.com/golang/glog"
+	logging "github.com/op/go-logging"
 )
 
 func heartbreakerHandler(w http.ResponseWriter, req *http.Request) {
-	io.Write(w, hugger.Hug())
+	logger.Infof("Meet heartbreaker from %s", req.Host)
+	io.WriteString(w, hugger.Hug())
 }
 
 var LISTENING_PORT = 1024
+var logger = logging.MustGetLogger("hugmachine.log")
 
 func main() {
-	http.Handle("/heartbreaker", heartbreakerHandler)
-	glog.Infof("Listening on port %d", LISTENING_PORT)
-	err := http.ListenAndServe(":"+str(LISTENING_PORT), nil)
+	logging.NewLogBackend(os.Stderr, "", 0)
+	http.HandleFunc("/heartbreaker", heartbreakerHandler)
+	logger.Infof("Listening on port %d", LISTENING_PORT)
+	err := http.ListenAndServe("0.0.0.0:"+strconv.Itoa(LISTENING_PORT), nil)
 	if err != nil {
-		glog.Fatal("ListenAndServe: " + err.Error())
+		logger.Fatal("ListenAndServe: " + err.Error())
 	}
 }
